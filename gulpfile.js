@@ -9,6 +9,10 @@ gulp.task("concatScripts", ()=>{
     gulp.src(["js/circle/**.js"])
     .pipe(concat("global.js"))
     .pipe(gulp.dest('js'));
+});
 
-
+gulp.task("minifyScrips", ()=>{
+    gulp.src("js/global.js")
+    .pipe(minify())
+    .pipe(gulp.dest('js'));
 });
