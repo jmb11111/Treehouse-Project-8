@@ -5,26 +5,33 @@ const gulp = require("gulp"),
     rename = require("gulp-rename"),
       sass = require("gulp-sass"),
        map = require("gulp-sourcemaps"),
- cssMinify = require("gulp-clean-css"),
+ cssMinify = require('gulp-cssnano'),
        del = require("del"),
  webserver = require('gulp-webserver'),
+     image = require('gulp-image'),
     minify = require("gulp-uglify");
 
+gulp.task("clean",()=>{
+         del(["dist", "styles", "scripts/**.js*"]);
+        })
+        
 gulp.task("concatScripts", ()=>{
-   return gulp.src(["jquery.js,scripts/**.js","scripts/circle/**.js"])
+   return gulp.src(["global.js","jquery.js","scripts/global.js","scripts/circle/**.js"])
     .pipe(map.init())
     .pipe(concat("global.js"))
     .pipe(map.write("./"))
     .pipe(gulp.dest('scripts'));
 });
 
-gulp.task("minifyScrips",["concatScripts"], ()=>{
+gulp.task("scripts",["concatScripts"], ()=>{
    return gulp.src("scripts/global.js")
     .pipe(minify())
     .pipe(rename('all.min.js'))
-    .pipe(gulp.dest('scripts'));
+    .pipe(gulp.dest('dist/scripts'));
 });
-
+gulp.task("watchSass",()=>{
+    gulp.watch("sass/**/*.scss", ["compileSass"]);
+})
 gulp.task("compileSass", ()=>{
     return gulp.src("sass/global.scss")
     .pipe(map.init())
@@ -32,43 +39,41 @@ gulp.task("compileSass", ()=>{
     .pipe(map.write("./"))
     .pipe(gulp.dest("styles"));
 })
-gulp.task("minifySass",["compileSass"], ()=>{
+
+gulp.task("styles",["compileSass"], ()=>{
     return gulp.src("styles/global.css")
-    .pipe(cssMinify())
-    .pipe(rename("all.min.css"))
-    .pipe(gulp.dest("styles"));
-
+    
+    .pipe(rename("all.css"))
+    .pipe(gulp.dest("dist/styles"));
 })
 
-gulp.task("scripts",["minifyScrips"])
 
-gulp.task("styles",["minifySass"])
 
-gulp.task("clean",()=>{
-del(["dist", "styles", "scripts/**.js*"]);
-})
+gulp.task('image', function () {
+   return gulp.src('./images/*')
+      .pipe(image())
+      .pipe(gulp.dest('dist/content'));
+  });
 
-gulp.task("distribution",["clean","scripts","styles"], ()=>{
-    return gulp.src(["scripts/all.min.js", "styles/all.min.css",
-    "index.html","images/**", "icons/**" ],{base: './'})
-    .pipe(gulp.dest('dist'));
 
-})
 
-gulp.task("build",["distribution"])
+  gulp.task("build",["clean","scripts","image","styles"],()=>{
+       gulp.src(["index.html", "icons/**" ],{base: './'})
+             .pipe(gulp.dest('dist')); 
+  })
 
-gulp.task("startServer",['build'],()=>{
+gulp.task("startServer",()=>{
     gulp.src('dist')
     .pipe(webserver({
-        port: 3000,
-        livereload: true,
+        port: 8000,
         open: true,
+        fallback: "index.html"
     }));
-
-
 })
 
-gulp.task("default",["build"], ()=>{
-   
 
+
+gulp.task("default", ["build"], ()=>{
+    gulp.start("startServer");
+ 
 })
