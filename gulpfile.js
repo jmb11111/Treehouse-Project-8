@@ -66,9 +66,11 @@ gulp.task("distribution",["clean","scripts","styles","newHTML"], ()=>{
 
 })
 
-gulp.task("build",["clean"],()=>{
-    const files= 
-        (gulp.start("newHTML"),
+gulp.task("build", ["clean"], () => {
+let build =
+        (gulp.start("styles"),
+        gulp.start("scripts"),
+        gulp.start('newHTML'),
         gulp.src([
         "scripts/all.min.js", 
         "styles/all.min.css",
